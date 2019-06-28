@@ -12,11 +12,16 @@ class QuotesSpider(scrapy.Spider):
 
     def parse(self, response):
         episodes = response.xpath('//table/tbody/tr/td/font/a/@href').getall()
-        for episode in episodes:
-            if episode.startswith('..'):
-                episode = episode[3:]
-                yield scrapy.Request(url='http://chakoteya.net/' + episode, callback=self.one_parse)
-            yield scrapy.Request(url=self.base_url+episode, callback=self.one_parse)
+        episode_names = response.xpath('//table/tbody/tr/td/font/a/text()').getall()
+        title = response.xpath('//head/title/text()').get()
+        with open(f'{title}.txt','w',encoding='utf-8') as f:
+            for name in episode_names:
+                f.write(f'{name}\n')
+        # for episode in episodes:
+        #     if episode.startswith('..'):
+        #         episode = episode[3:]
+        #         yield scrapy.Request(url='http://chakoteya.net/' + episode, callback=self.one_parse)
+        #     yield scrapy.Request(url=self.base_url+episode, callback=self.one_parse)
 
     def one_parse(self,response):
         texts = response.text

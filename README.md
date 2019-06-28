@@ -45,6 +45,5 @@
 
 ## input设计
 
-借鉴huggingface的“transfer-learning-conv-ai”，分为三个部分，persona，history，reply，不过因为这里是多人的对话，所以persona部分需要进行修改
-
-将segment embeddings部分的进行修改，将第一部分
+借鉴huggingface的“transfer-learning-conv-ai”，分为三个部分，persona，history，reply
+这里需要在最开始添加一个place部分，同时需要将人物所有属性对应起来
