@@ -47,3 +47,7 @@
 
 借鉴huggingface的“transfer-learning-conv-ai”，分为三个部分，persona，history，reply
 这里需要在最开始添加一个place部分，同时需要将人物所有属性对应起来
+
+### 当前进度
+
+- 已经从BBC上将能够找到的人物角色介绍抓取下来，下一步需要和剧本中的人物进行一一对应
