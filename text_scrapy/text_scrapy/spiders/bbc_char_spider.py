@@ -1,5 +1,6 @@
 import scrapy
 import html2text
+import json
 
 class QuotesSpider(scrapy.Spider):
     name = "bbc-char"
@@ -33,9 +34,16 @@ class QuotesSpider(scrapy.Spider):
     def one_parse(self,response):
         name = response.xpath('//div[@class="prog-layout prog-layout__primary component programmes-page--topboxed"]/h1/text()').get()
         texts = response.xpath('//div[@class="prog-layout prog-layout__primary component programmes-page--topboxed"]/div/p/text()').get()
-        des = response.xpath('//div[@class="island--horizontal"]//text()').getall()
+        des = response.xpath('//tr/td//text()').getall()
         des = list(filter(lambda x:x.strip() != '',des))
-        with open(f'../text/{name}.txt','w',encoding='utf-8') as f:
+        des_dict = dict()
+        i = 0
+        while i < len(des) - 1:
+            des_dict[des[i].strip()[:-2]] = des[i+1].strip()
+            i += 2
+        des_dict['name'] = name
+        des_dict['des'] = texts
+        with open(f'../text/characters/{name}.txt','w',encoding='utf-8') as f:
             f.write(texts+'\n')
             for x in des:
                 f.write(f'{x.strip()}\n')
