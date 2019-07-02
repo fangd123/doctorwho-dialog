@@ -26,34 +26,41 @@ def download_pretrained_model():
         archive.extractall(tempdir)
     return tempdir
 
+#
+# def get_dataset(tokenizer, dataset_path, dataset_cache=None):
+#     """ Get PERSONACHAT from S3 """
+#     dataset_path = dataset_path or PERSONACHAT_URL
+#     dataset_cache = dataset_cache + '_' + type(tokenizer).__name__  # Do avoid using GPT cache for GPT-2 and vice-versa
+#     if dataset_cache and os.path.isfile(dataset_cache):
+#         logger.info("Load tokenized dataset from cache at %s", dataset_cache)
+#         dataset = torch.load(dataset_cache)
+#     else:
+#         logger.info("Download dataset from %s", dataset_path)
+#         personachat_file = cached_path(dataset_path)
+#         with open(personachat_file, "r", encoding="utf-8") as f:
+#             dataset = json.loads(f.read())
+#
+#         logger.info("Tokenize and encode the dataset")
+#         def tokenize(obj):
+#             if isinstance(obj, str):
+#                 return tokenizer.convert_tokens_to_ids(tokenizer.tokenize(obj))
+#             if isinstance(obj, dict):
+#                 return dict((n, tokenize(o)) for n, o in obj.items())
+#             return list(tokenize(o) for o in obj)
+#         dataset = tokenize(dataset)
+#         if dataset_cache:
+#             torch.save(dataset, dataset_cache)
+#     return dataset
 
 def get_dataset(tokenizer, dataset_path, dataset_cache=None):
-    """ Get PERSONACHAT from S3 """
-    dataset_path = dataset_path or PERSONACHAT_URL
-    dataset_cache = dataset_cache + '_' + type(tokenizer).__name__  # Do avoid using GPT cache for GPT-2 and vice-versa
-    if dataset_cache and os.path.isfile(dataset_cache):
-        logger.info("Load tokenized dataset from cache at %s", dataset_cache)
-        dataset = torch.load(dataset_cache)
-    else:
-        logger.info("Download dataset from %s", dataset_path)
-        personachat_file = cached_path(dataset_path)
-        with open(personachat_file, "r", encoding="utf-8") as f:
-            dataset = json.loads(f.read())
-
-        logger.info("Tokenize and encode the dataset")
-        def tokenize(obj):
-            if isinstance(obj, str):
-                return tokenizer.convert_tokens_to_ids(tokenizer.tokenize(obj))
-            if isinstance(obj, dict):
-                return dict((n, tokenize(o)) for n, o in obj.items())
-            return list(tokenize(o) for o in obj)
-        dataset = tokenize(dataset)
-        if dataset_cache:
-            torch.save(dataset, dataset_cache)
-    return dataset
-
-def get_dataset(tokenizer, dataset_path, dataset_cache=None):
-    """ TODO 从当前获取 """
+    """
+    获取整个数据集
+    并对其进行BPE分词和向量化
+    :param tokenizer:分词器
+    :param dataset_path: 路径
+    :param dataset_cache: 缓存路径
+    :return:
+    """
     dataset_path = dataset_path or PERSONACHAT_URL
     dataset_cache = dataset_cache + '_' + type(tokenizer).__name__  # Do avoid using GPT cache for GPT-2 and vice-versa
     if dataset_cache and os.path.isfile(dataset_cache):

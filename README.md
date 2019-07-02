@@ -48,6 +48,15 @@
 借鉴huggingface的“transfer-learning-conv-ai”，分为三个部分，persona，history，reply
 这里需要在最开始添加一个place部分，同时需要将人物所有属性对应起来
 
+原始设计：
+```python
+# >>> print(sequence)  # Our inputs looks like this:
+# [['<bos>', 'i', 'like', 'playing', 'football', '.', 'i', 'am', 'from', 'NYC', '.'],
+#  ['<speaker1>', 'hello', 'how', 'are', 'you', '?'],
+#  ['<speaker2>', 'i', 'am', 'fine', 'thanks', '.'],
+#  ['<speaker1>', 'great', 'to', 'hear', '<eos>']]
+```````
+
 ### 详细设计
 
 - embedding: 与“transfer-learning-conv-ai”相同，设计为三个，word/position/segment

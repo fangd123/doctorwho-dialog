@@ -21,8 +21,12 @@ from pytorch_pretrained_bert import (OpenAIAdam, OpenAIGPTLMHeadModel, OpenAIGPT
 
 from utils import get_dataset
 
-SPECIAL_TOKENS = ["<bos>", "<eos>", "<speaker1>", "<speaker2>", "<pad>"]
-MODEL_INPUTS = ["input_ids", "mc_token_ids", "lm_labels", "mc_labels", "token_type_ids"]
+SPECIAL_TOKENS = ["<bos>", "<eos>",
+                  "<speaker1>", "<speaker2>",
+                   "<speaker3>", "<speaker4>",
+                   "<speaker5>", "<speaker6>",
+                  "<pad>"]
+MODEL_INPUTS = ["input_ids", "lm_labels","token_type_ids"]
 PADDED_INPUTS = ["input_ids", "lm_labels", "token_type_ids"]
 
 logger = logging.getLogger(__file__)
@@ -46,9 +50,11 @@ def pad_dataset(dataset, padding=0):
 
 def build_input_from_segments(persona, history, reply, tokenizer, with_eos=True):
     """ Build a sequence of input from 3 segments: persona, history and last reply """
-    bos, eos, speaker1, speaker2 = tokenizer.convert_tokens_to_ids(SPECIAL_TOKENS[:-1])
+    bos, eos, speaker1, speaker2, speaker3, speaker4,speaker5, speaker6 = tokenizer.convert_tokens_to_ids(SPECIAL_TOKENS[:-1])
 
     instance = {}
+    # 将不同的人物profile信息展开
+    sequence = [[bos] + [one for one in persona]]
     sequence = [[bos] + list(chain(*persona))] + history + [reply + ([eos] if with_eos else [])]
     sequence = [sequence[0]] + [[speaker2 if (len(sequence)-i) % 2 else speaker1] + s for i, s in enumerate(sequence[1:])]
 

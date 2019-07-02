@@ -4,7 +4,7 @@ from pathlib import Path
 from tqdm import tqdm
 import json
 import pickle
-
+from nltk.tokenize import word_tokenize
 
 def sentence_concat(file_path):
     """
@@ -128,18 +128,11 @@ def split_by_scene():
         with open(f'text/format_dialog/{one_file.parts[-2]}/{one_file.name}.pkl', 'wb') as f:
             pickle.dump(scene_list, f)
 
-
-def has_doctor(dia_list: list):
-    for one in dia_list:
-        if 'DOCTOR' in one.keys():
-            return True
-    return False
-
-
-def filter_has_doctor_not_longer(size='768'):
+def dialog_chunk(size=640):
     """
-    筛选出含有DOCTOR的场景
-    :param size:
+    对话数据分块
+    考虑到使用BPE算法之后，词长度会变大，因此需要留有一定的余量
+    这里就是简单的分词之后直接判断了
     :return:
     """
     p = Path('text/format_dialog')
@@ -148,15 +141,44 @@ def filter_has_doctor_not_longer(size='768'):
         with open(one_file, 'rb') as f:
             scences = pickle.load(f)
 
-        has_doctors = list(filter(lambda x: has_doctor(x['dialog']), scences))
-        # has_doctors
+def scence_chunk(scence,size):
+    dialog = scence['dialog']
+    chunk_data = list()
+    for one in dialog:
+        chunk_list = []
+        chunk_text = ''
+        cache_text = ''
 
-        with open(one_file, 'wb') as f:
-            pickle.dump(has_doctors, f)
-
+        name = one.keys()[0]
+        sents = list(one.values())
+        sents_length = sum(map(lambda x:len(word_tokenize(x.strip()),sents)))
+        # 不存在缓存
+        if cache_text == '':
+            if len(chunk_text + line) > chunk_size:
+                assert len(chunk_text) <= chunk_size
+                chunk_list.append(chunk_text)
+                chunk_text = ''
+                cache_text = line
+            else:
+                chunk_text += line
+        # 存在缓存
+        else:
+            if len(chunk_text + cache_text) > chunk_size:
+                assert len(chunk_text) <= chunk_size
+                chunk_list.append(chunk_text)
+                chunk_text = ''
+            chunk_text += cache_text
+            cache_text = ''
+            if len(chunk_text + line) > chunk_size:
+                assert len(chunk_text) <= chunk_size
+                chunk_list.append(chunk_text)
+                chunk_text = ''
+                cache_text = line
+            else:
+                chunk_text += line
 
 if __name__ == '__main__':
     # split_by_scene()
     # preprocess_s_concat()
     # character_episode_match('text/characters','text/stories')
-    filter_has_doctor_not_longer()
+    filter_has_doctor()
