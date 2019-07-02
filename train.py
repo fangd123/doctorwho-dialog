@@ -53,12 +53,30 @@ def build_input_from_segments(persona, history, reply, tokenizer, with_eos=True)
     bos, eos, speaker1, speaker2, speaker3, speaker4,speaker5, speaker6 = tokenizer.convert_tokens_to_ids(SPECIAL_TOKENS[:-1])
 
     instance = {}
+    speakers = [speaker1, speaker2, speaker3, speaker4,speaker5, speaker6]
+    speaker_person_map = {person:speakers[i] for i,person in enumerate(persona.keys())}
     # 将不同的人物profile信息展开
-    sequence = [[bos] + [one for one in persona]]
-    sequence = [[bos] + list(chain(*persona))] + history + [reply + ([eos] if with_eos else [])]
-    sequence = [sequence[0]] + [[speaker2 if (len(sequence)-i) % 2 else speaker1] + s for i, s in enumerate(sequence[1:])]
+
+    profile_sequence = [ [speakers[i] + one ] for i,one in enumerate(persona.values())]
+
+    history_sequence = []
+    for one in history:
+        name = one.keys()[0]
+        speaker = speaker_person_map[name]
+        history_sequence.append( [speaker + one.values()])
+
+    reply_sequence = []
+    reply_name = reply.keys()[0]
+    reply_sequence = [speaker_person_map[reply_name] + reply.values()]
+
+    sequence = profile_sequence + history_sequence + reply_sequence
+    #sequence = [[bos] + list(chain(*persona))] + history + [reply + ([eos] if with_eos else [])]
+    #sequence = [sequence[0]] + [[speaker2 if (len(sequence)-i) % 2 else speaker1] + s for i, s in enumerate(sequence[1:])]
 
     instance["input_ids"] = list(chain(*sequence))
+    instance["token_type_ids"] = list()
+    for one in sequence:
+        instance["token_type_ids"] += [one[0] * len(one)]
     instance["token_type_ids"] = [speaker2 if i % 2 else speaker1 for i, s in enumerate(sequence) for _ in s]
     instance["lm_labels"] = ([-1] * sum(len(s) for s in sequence[:-1])) + [-1] + sequence[-1][1:]
     return instance, sequence
