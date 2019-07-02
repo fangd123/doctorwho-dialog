@@ -6,6 +6,7 @@ import json
 import pickle
 from nltk.tokenize import word_tokenize
 
+
 def sentence_concat(file_path):
     """
     句子拼接，将被切开的句子还原
@@ -128,6 +129,7 @@ def split_by_scene():
         with open(f'text/format_dialog/{one_file.parts[-2]}/{one_file.name}.pkl', 'wb') as f:
             pickle.dump(scene_list, f)
 
+
 def dialog_chunk(size=640):
     """
     对话数据分块
@@ -141,44 +143,67 @@ def dialog_chunk(size=640):
         with open(one_file, 'rb') as f:
             scences = pickle.load(f)
 
-def scence_chunk(scence,size):
+
+class PersonSay:
+    def __init__(self, one: dict):
+        self.name = one.keys()[0]
+        self.sents = list(one.values())
+
+    def __len__(self):
+        return sum(map(lambda x: len(word_tokenize(x.strip()), self.sents)))
+
+def scence_chunk(scence, chunk_size):
+    """
+    对场景按照一定的大小限制进行分块
+    分割为多个场景
+    :param scence:
+    :param chunk_size:
+    :return:
+    """
     dialog = scence['dialog']
-    chunk_data = list()
+    place = scence['place']
     for one in dialog:
         chunk_list = []
         chunk_text = ''
-        cache_text = ''
+        cache_text = None
 
-        name = one.keys()[0]
-        sents = list(one.values())
-        sents_length = sum(map(lambda x:len(word_tokenize(x.strip()),sents)))
+        person_say = PersonSay(one)
         # 不存在缓存
-        if cache_text == '':
-            if len(chunk_text + line) > chunk_size:
-                assert len(chunk_text) <= chunk_size
+        if cache_text == None:
+            if sum(map(lambda x: len(x), chunk_text)) + len(person_say) > chunk_size:
+                assert sum(map(lambda x: len(x), chunk_text)) <= chunk_size
                 chunk_list.append(chunk_text)
-                chunk_text = ''
-                cache_text = line
+                chunk_text = list()
+                cache_text = person_say
             else:
-                chunk_text += line
+                chunk_text.append(person_say)
         # 存在缓存
         else:
-            if len(chunk_text + cache_text) > chunk_size:
-                assert len(chunk_text) <= chunk_size
+            if sum(map(lambda x: len(x), chunk_text)) + len(cache_text) > chunk_size:
+                assert sum(map(lambda x: len(x), chunk_text)) <= chunk_size
                 chunk_list.append(chunk_text)
-                chunk_text = ''
-            chunk_text += cache_text
-            cache_text = ''
-            if len(chunk_text + line) > chunk_size:
-                assert len(chunk_text) <= chunk_size
+                chunk_text = list()
+            chunk_text.append(person_say)
+            cache_text = None
+            if sum(map(lambda x: len(x), chunk_text)) + len(person_say) > chunk_size:
+                assert sum(map(lambda x: len(x), chunk_text)) <= chunk_size
                 chunk_list.append(chunk_text)
-                chunk_text = ''
-                cache_text = line
+                chunk_text = list
+                cache_text = person_say
             else:
-                chunk_text += line
+                chunk_text.append(person_say)
+
+    chunk_scence = list()
+    for one in chunk_list:
+        dialog_list = [{x.name:x.sents} for x in one]
+        chunk_scence.append({'place':place,'dialog':dialog_list})
+
+    return chunk_scence
+
 
 if __name__ == '__main__':
     # split_by_scene()
     # preprocess_s_concat()
     # character_episode_match('text/characters','text/stories')
-    filter_has_doctor()
+    #filter_has_doctor()
+    pass
